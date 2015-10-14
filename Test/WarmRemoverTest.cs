@@ -10,15 +10,14 @@ namespace Test
 {
     public class WarmRemoverTest
     {
+        private string tempFile = Path.GetTempFileName();
+        private WarmRemover subject = new WarmRemover();
+
         [Test]
         public void RemoveFileTest()
         {
-            var file = Path.GetTempFileName();
-            var process = CreateLock(file);
-            
-            var wd = new WarmRemover();
-
-            wd.RemoveInternal(file);
+            var process = CreateLock(tempFile);
+            subject.RemoveInternal(tempFile);
             Assert.True(process.HasExited);
         }
         [Test]
@@ -28,21 +27,27 @@ namespace Test
             var sub = Path.Combine(dir, "A\\B\\C");
             Directory.CreateDirectory(sub);
             var subFile = Path.Combine(sub, "SomeFileDeepInsideDirectories.dll");
-
-
             var process = CreateLock(subFile);
-            var wd = new WarmRemover();
-            wd.RemoveInternal(dir);
+            subject.RemoveInternal(dir);
             Assert.True(process.HasExited);
         }
 
-        private static Process CreateLock(string file)
+        [Test]
+        public void CloseWindowsApplicationUsingMessages()
+        {
+            var process = CreateLock(tempFile, false);
+            var wd = new WarmRemover();
+            wd.Remove(tempFile);
+            Assert.True(process.HasExited);
+        }
+
+        private static Process CreateLock(string file, bool hidden = true)
         {
             var asm = Assembly.Load("Naughty");
             var process = Process.Start(new ProcessStartInfo
             {
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = hidden,
+                WindowStyle = hidden ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal,
                 FileName = asm.Location,
                 Arguments = file
             });

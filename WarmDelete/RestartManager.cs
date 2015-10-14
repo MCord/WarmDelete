@@ -9,7 +9,7 @@ namespace WarmDelete
     public class RestartManager
     {
         [StructLayout(LayoutKind.Sequential)]
-        private struct RM_UNIQUE_PROCESS
+        public struct RM_UNIQUE_PROCESS
         {
             public int dwProcessId;
             public System.Runtime.InteropServices.ComTypes.FILETIME ProcessStartTime;
@@ -19,7 +19,7 @@ namespace WarmDelete
         private const int CCH_RM_MAX_APP_NAME = 255;
         private const int CCH_RM_MAX_SVC_NAME = 63;
 
-        private enum RM_APP_TYPE
+        public enum RM_APP_TYPE
         {
             RmUnknownApp = 0,
             RmMainWindow = 1,
@@ -31,18 +31,21 @@ namespace WarmDelete
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        private struct RM_PROCESS_INFO
+        public struct RM_PROCESS_INFO
         {
             public RM_UNIQUE_PROCESS Process;
 
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCH_RM_MAX_APP_NAME + 1)] public string strAppName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCH_RM_MAX_APP_NAME + 1)]
+            public string strAppName;
 
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCH_RM_MAX_SVC_NAME + 1)] public string strServiceShortName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCH_RM_MAX_SVC_NAME + 1)]
+            public string strServiceShortName;
 
             public RM_APP_TYPE ApplicationType;
             public uint AppStatus;
             public uint TSSessionId;
-            [MarshalAs(UnmanagedType.Bool)] public bool bRestartable;
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool bRestartable;
         }
 
         [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
@@ -74,14 +77,13 @@ namespace WarmDelete
         /// <returns>Processes locking the file</returns>
         /// <remarks>See also:
         /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa373661(v=vs.85).aspx
-        /// http://wyupdate.googlecode.com/svn-history/r401/trunk/frmFilesInUse.cs (no copyright in code at time of viewing)
+        /// http://wyupdate.googlecode.com/svn-history/r401/trunk/frmFilesInUse.cs
         /// 
         /// </remarks>
-        public static List<Process> WhoIsLocking(string path)
+        public static IEnumerable<RM_PROCESS_INFO> WhoIsLocking(string path)
         {
             uint handle;
             string key = Guid.NewGuid().ToString();
-            List<Process> processes = new List<Process>();
 
             int res = RmStartSession(out handle, 0, key);
             if (res != 0) throw new Exception("Could not begin restart session.  Unable to determine file locker.");
@@ -114,20 +116,12 @@ namespace WarmDelete
                     res = RmGetList(handle, out pnProcInfoNeeded, ref pnProcInfo, processInfo, ref lpdwRebootReasons);
                     if (res == 0)
                     {
-                        processes = new List<Process>((int) pnProcInfo);
 
                         // Enumerate all of the results and add them to the 
                         // list to be returned
                         for (int i = 0; i < pnProcInfo; i++)
                         {
-                            try
-                            {
-                                processes.Add(Process.GetProcessById(processInfo[i].Process.dwProcessId));
-                            }
-                                // catch the error -- in case the process is no longer running
-                            catch (ArgumentException)
-                            {
-                            }
+                            yield return processInfo[i];
                         }
                     }
                     else throw new Exception("Could not list processes locking resource.");
@@ -138,8 +132,6 @@ namespace WarmDelete
             {
                 RmEndSession(handle);
             }
-
-            return processes;
         }
     }
 }
