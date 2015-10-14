@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Reflection;
+using NUnit.Framework;
 using WarmDelete;
-using Xunit;
 
 namespace Test
 {
     public class FileServiceTest
     {
-        [Fact]
+        [Test]
         public void IsDirectory()
         {
-            Assert.True(FileService.IsDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Windows)));
+            Assert.True(FileService.IsDirectory(Environment.GetFolderPath(Environment.SpecialFolder.System)));
             Assert.False(FileService.IsDirectory(Assembly.GetExecutingAssembly().Location));
         }
     }

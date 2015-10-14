@@ -3,14 +3,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using NUnit.Framework;
 using WarmDelete;
-using Xunit;
 
 namespace Test
 {
     public class WarmRemoverTest
     {
-        [Fact]
+        [Test]
         public void RemoveFileTest()
         {
             var file = Path.GetTempFileName();
@@ -21,11 +21,11 @@ namespace Test
             wd.RemoveInternal(file);
             Assert.True(process.HasExited);
         }
-        [Fact]
+        [Test]
         public void RemoveDirTest()
         {
             var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var sub = Path.Combine(dir, "A", "B", "C");
+            var sub = Path.Combine(dir, "A\\B\\C");
             Directory.CreateDirectory(sub);
             var subFile = Path.Combine(sub, "SomeFileDeepInsideDirectories.dll");
 
