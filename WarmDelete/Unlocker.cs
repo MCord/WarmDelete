@@ -40,16 +40,15 @@ namespace WarmDelete
         {
             var process = Process.GetProcessById(locker.Process.dwProcessId);
 
-            Log.Info($"Killing process {process.ProcessName} with id {process.Id}");
             if (Can(Result.Message) && SendCloseMessage(process))
             {
-                Log.Verbose($"Closed ${process.ProcessName} with id {process.Id} via close message.");
+                Log.Info($"Closed {process.ProcessName} with id {process.Id} via close message.");
                 return Result.Message;
             }
 
             if (Can(Result.Kill) && Kill(process))
             {
-                Log.Verbose($"Killed ${process.ProcessName} with id {process.Id}.");
+                Log.Info($"Killed {process.ProcessName} with id {process.Id}.");
                 return Result.Kill;
             }
             return Result.Failure;
