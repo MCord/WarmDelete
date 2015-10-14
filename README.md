@@ -6,9 +6,23 @@ Warm delete is a windows command line tool to remove files and folders that are 
 ### arguments
 
 ```
-warmdelete  --target c:\apps\myserver
-warmdelete  --target c:\apps\myserver\lockedFile.dll
-warmdelete  --help
+WarmDelete 1.1.0.0
+Copyright c  2015
+
+  -t, --target     Required. Target file or folder.
+
+  -v, --verbose    (Default: False) Prints detailed messages to standard
+                   output.
+
+  --no-kill        (Default: False) Do not kill the target process.
+
+  --no-message     (Default: False) Do not send a close message (usefull when
+                   the process has no visible windows).
+
+  --timeout        (Default: 60) How many seconds to wait for when stopping a
+                   service.
+
+  --help           Display this help screen.
 ```
 
 ### Thanks
