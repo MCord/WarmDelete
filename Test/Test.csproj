@@ -71,6 +71,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Naughty\Naughty.csproj">
+      <Project>{65faff21-0d7d-4588-88f8-e243bc72136a}</Project>
+      <Name>Naughty</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WarmDelete\WarmDelete.csproj">
       <Project>{BF45EEB7-A10D-4A45-AE9D-C3FB9378482E}</Project>
       <Name>WarmDelete</Name>

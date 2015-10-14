@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarmDelete", "WarmDelete.csproj", "{BF45EEB7-A10D-4A45-AE9D-C3FB9378482E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarmDelete", "WarmDelete\WarmDelete.csproj", "{BF45EEB7-A10D-4A45-AE9D-C3FB9378482E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "..\Test\Test.csproj", "{07642472-9164-4BBD-BF1F-D20A25AB0F1D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{07642472-9164-4BBD-BF1F-D20A25AB0F1D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naughty", "Naughty\Naughty.csproj", "{65FAFF21-0D7D-4588-88F8-E243BC72136A}"
 EndProject
