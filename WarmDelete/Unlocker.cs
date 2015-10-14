@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.ServiceProcess;
 
 namespace WarmDelete
 {
     public static class Unlocker
     {
         public static Result Allow = Result.All;
+        public static int SecondsToWaitForServiceStop;
 
         [Flags]
         public enum Result
@@ -27,18 +29,30 @@ namespace WarmDelete
                 return ;
             }
 
+            var success = false;
             foreach (var locker in lockers)
             {
-                if(Liberate(locker, path) == Result.Failure)
+                if(Liberate(locker, path) != Result.Failure)
                 {
-                    throw new Exception($"Can't free {path}");
+                    success = true;
                 }
+            }
+
+            if (!success)
+            {
+                throw new Exception($"Can't free {path}");
             }
         }
 
         private static Result Liberate(RestartManager.RM_PROCESS_INFO locker, string path)
         {
             var process = Process.GetProcessById(locker.Process.dwProcessId);
+
+            if (Can(Result.ServiceStop) && StopService(locker))
+            {
+                Log.Info($"Stopped windows service {locker.strServiceShortName} ({locker.strAppName}) with id {process.Id}.");
+                return Result.Message;
+            }
 
             if (Can(Result.Message) && SendCloseMessage(process))
             {
@@ -52,6 +66,29 @@ namespace WarmDelete
                 return Result.Kill;
             }
             return Result.Failure;
+        }
+
+        private static bool StopService(RestartManager.RM_PROCESS_INFO locker)
+        {
+            if (!string.IsNullOrEmpty(locker.strServiceShortName))
+            {
+                Log.Verbose($"Found windows service {locker.strServiceShortName}");
+                var service = new ServiceController(locker.strServiceShortName);
+                service.Stop();
+
+                try
+                {
+                    service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(SecondsToWaitForServiceStop));
+                    return true;
+                }
+                catch(Exception ex)
+                {
+                    Log.Error($"Service {locker.strServiceShortName} failed to stop:" + ex.Message);
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         private static bool Kill(Process process)

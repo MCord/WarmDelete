@@ -13,13 +13,27 @@ namespace WarmDelete
             }
 
             SetRights(options);
-
+            SetTimeout(options);
+            SetVerbosity(options);
             var wr = new WarmRemover
             {
                 VerboseMode = options.Verbose
             };
 
             return wr.Remove(options.Target);
+        }
+
+        private static void SetVerbosity(Options options)
+        {
+            if (options.Verbose)
+            {
+                Log.EnableVerboseMode();
+            }
+        }
+
+        private static void SetTimeout(Options options)
+        {
+            Unlocker.SecondsToWaitForServiceStop = options.Timeout;
         }
 
         private static void SetRights(Options options)

@@ -35,6 +35,8 @@ namespace WarmDelete
 
         private void RemoveDirectory(string target, bool contentOnly = false)
         {
+            File.SetAttributes(target, FileAttributes.Normal);
+
             foreach (var file in Directory.GetFiles(target))
             {
                 RemoveFile(file);
@@ -55,7 +57,7 @@ namespace WarmDelete
 
                 Directory.Delete(target);
             }
-            catch (IOException)
+            catch (Exception)
             {
                 Unlocker.Liberate(target);
                 Directory.Delete(target);
@@ -63,7 +65,7 @@ namespace WarmDelete
             Log.Verbose($"Removed: {target}");
         }
 
-        private void RemoveFile(string target)
+       private void RemoveFile(string target)
         {
             if (!File.Exists(target))
             {
@@ -73,14 +75,20 @@ namespace WarmDelete
 
             try
             {
-                File.Delete(target);
+                DeleteFile(target);
             }
-            catch(IOException)
+            catch(Exception) //Can be UnauthorizedAccessException for exe files or IOException for other in use files. 
             {
                 Unlocker.Liberate(target);
-                File.Delete(target);
+                DeleteFile(target);
             }
             Log.Verbose($"Removed: {target}");
+        }
+
+        private static void DeleteFile(string target)
+        {
+            File.SetAttributes(target, FileAttributes.Normal);
+            File.Delete(target);
         }
     }
 }

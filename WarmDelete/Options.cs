@@ -19,6 +19,11 @@ namespace WarmDelete
         [Option("no-message", DefaultValue = false, HelpText = "Do not send a close message (usefull when the process has no visible windows).")]
         public bool DenyMessage { get; set; }
 
+        [Option("timeout", HelpText = "How many seconds to wait for when stopping a service.", DefaultValue = 60)]
+        public int Timeout { get; set; }
+
+
+
         [HelpOption]
         public string GetUsage()
         {
