@@ -21,9 +21,18 @@ namespace WarmDelete
         {
             var lockers = RestartManager.WhoIsLocking(path);
 
+            if(lockers.Count == 0)
+            {
+                Log.Verbose($"Nothing is locking {path}");
+                return ;
+            }
+
             foreach (var locker in lockers)
             {
-                Liberate(locker, path);
+                if(Liberate(locker, path) == Result.Failure)
+                {
+                    throw new Exception($"Can't free {path}");
+                }
             }
         }
 
@@ -38,7 +47,7 @@ namespace WarmDelete
                 return Result.Message;
             }
 
-            if (Can(Result.Message) && Kill(process))
+            if (Can(Result.Kill) && Kill(process))
             {
                 Log.Verbose($"Killed ${process.ProcessName} with id {process.Id}.");
                 return Result.Kill;

@@ -16,6 +16,7 @@ namespace Test
         [Test]
         public void RemoveFileTest()
         {
+            Unlocker.Allow =Unlocker.Result.Kill;
             var process = CreateLock(tempFile);
             subject.RemoveInternal(tempFile);
             Assert.True(process.HasExited);
@@ -23,6 +24,7 @@ namespace Test
         [Test]
         public void RemoveDirTest()
         {
+            Unlocker.Allow = Unlocker.Result.Kill;
             var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var sub = Path.Combine(dir, "A\\B\\C");
             Directory.CreateDirectory(sub);
@@ -35,6 +37,8 @@ namespace Test
         [Test]
         public void CloseWindowsApplicationUsingMessages()
         {
+            Unlocker.Allow = Unlocker.Result.Message;
+
             var process = CreateLock(tempFile, false);
             var wd = new WarmRemover();
             wd.Remove(tempFile);

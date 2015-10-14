@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="FileServiceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnlockerTest.cs" />
     <Compile Include="WarmRemoverTest.cs" />
   </ItemGroup>
   <ItemGroup>

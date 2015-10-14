@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -80,13 +81,16 @@ namespace WarmDelete
         /// http://wyupdate.googlecode.com/svn-history/r401/trunk/frmFilesInUse.cs
         /// 
         /// </remarks>
-        public static IEnumerable<RM_PROCESS_INFO> WhoIsLocking(string path)
+        public static List<RM_PROCESS_INFO> WhoIsLocking(string path)
         {
             uint handle;
             string key = Guid.NewGuid().ToString();
-
+            var result = new List<RM_PROCESS_INFO>();
             int res = RmStartSession(out handle, 0, key);
-            if (res != 0) throw new Exception("Could not begin restart session.  Unable to determine file locker.");
+            if (res != 0)
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
 
             try
             {
@@ -121,7 +125,7 @@ namespace WarmDelete
                         // list to be returned
                         for (int i = 0; i < pnProcInfo; i++)
                         {
-                            yield return processInfo[i];
+                            result.Add(processInfo[i]);
                         }
                     }
                     else throw new Exception("Could not list processes locking resource.");
@@ -132,6 +136,7 @@ namespace WarmDelete
             {
                 RmEndSession(handle);
             }
+            return result;
         }
     }
 }
