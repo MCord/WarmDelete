@@ -47,22 +47,26 @@ namespace WarmDelete
         private static Result Liberate(RestartManager.RM_PROCESS_INFO locker, string path)
         {
             var process = Process.GetProcessById(locker.Process.dwProcessId);
+            
+            /*Need to access these variables after the process is terminated.*/
+            var processId = process.Id;
+            var processName = process.ProcessName;
 
             if (Can(Result.ServiceStop) && StopService(locker))
             {
-                Log.Info($"Stopped windows service {locker.strServiceShortName} ({locker.strAppName}) with id {process.Id}.");
+                Log.Info($"Stopped windows service {locker.strServiceShortName} ({locker.strAppName}) with id {processId}.");
                 return Result.Message;
             }
 
             if (Can(Result.Message) && SendCloseMessage(process))
             {
-                Log.Info($"Closed {process.ProcessName} with id {process.Id} via close message.");
+                Log.Info($"Closed {processName} with id {processId} via close message.");
                 return Result.Message;
             }
 
             if (Can(Result.Kill) && Kill(process))
             {
-                Log.Info($"Killed {process.ProcessName} with id {process.Id}.");
+                Log.Info($"Killed {processName} with id {processId}.");
                 return Result.Kill;
             }
             return Result.Failure;
