@@ -34,7 +34,7 @@ namespace Test
             Assert.True(process.HasExited);
         }
 
-        [Test]
+        [Ignore("will create a new windows each time.")]
         public void CloseWindowsApplicationUsingMessages()
         {
             Unlocker.Allow = Unlocker.Result.Message;
@@ -43,6 +43,20 @@ namespace Test
             var wd = new WarmRemover();
             wd.Remove(tempFile);
             Assert.True(process.HasExited);
+        }
+
+        [Test]
+        public void RemoveByClosingHandle()
+        {
+            Unlocker.Allow = Unlocker.Result.CloseHandle;
+            var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var sub = Path.Combine(dir, "A\\B\\C");
+            Directory.CreateDirectory(sub);
+            var subFile = Path.Combine(sub, "SomeFileDeepInsideDirectories.dll");
+            var process = CreateLock(subFile);
+            subject.RemoveInternal(dir);
+            Assert.False(process.HasExited);
+            process.Kill();
         }
 
         private static Process CreateLock(string file, bool hidden = true)

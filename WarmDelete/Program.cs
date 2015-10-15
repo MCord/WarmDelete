@@ -33,7 +33,7 @@ namespace WarmDelete
 
         private static void SetTimeout(Options options)
         {
-            Unlocker.SecondsToWaitForServiceStop = options.Timeout;
+            Unlocker.SecondsToWaitForHandleRelease = options.Timeout;
         }
 
         private static void SetRights(Options options)

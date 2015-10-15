@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.ServiceProcess;
+using System.Threading;
+using VmcController.Services;
 
 namespace WarmDelete
 {
     public static class Unlocker
     {
         public static Result Allow = Result.All;
-        public static int SecondsToWaitForServiceStop;
+        public static int SecondsToWaitForHandleRelease = 30;
 
         [Flags]
         public enum Result
@@ -47,23 +50,29 @@ namespace WarmDelete
         private static Result Liberate(RestartManager.RM_PROCESS_INFO locker, string path)
         {
             var process = Process.GetProcessById(locker.Process.dwProcessId);
-            
+            var handles = DetectOpenFiles.GetOpenFilesEnumerator(process.Id).Where(h => h.FilePath.StartsWith(path, StringComparison.CurrentCultureIgnoreCase)).ToArray();
+
             /*Need to access these variables after the process is terminated.*/
             var processId = process.Id;
             var processName = process.ProcessName;
 
-            if (Can(Result.ServiceStop) && StopService(locker))
+            if (Can(Result.ServiceStop) && StopService(locker, handles))
             {
                 Log.Info($"Stopped windows service {locker.strServiceShortName} ({locker.strAppName}) with id {processId}.");
                 return Result.Message;
             }
 
-            if (Can(Result.Message) && SendCloseMessage(process))
+            if (Can(Result.Message) && SendCloseMessage(process, handles))
             {
                 Log.Info($"Closed {processName} with id {processId} via close message.");
                 return Result.Message;
             }
 
+            if(Can(Result.CloseHandle) && CloseHandle(locker, handles, path))
+            {
+                Log.Info($"Closed {handles.Length} handle(s) in process {processName} with id {processId}.");
+                return Result.CloseHandle;
+            }
             if (Can(Result.Kill) && Kill(process))
             {
                 Log.Info($"Killed {processName} with id {processId}.");
@@ -72,7 +81,24 @@ namespace WarmDelete
             return Result.Failure;
         }
 
-        private static bool StopService(RestartManager.RM_PROCESS_INFO locker)
+        private static bool CloseHandle(RestartManager.RM_PROCESS_INFO locker, DetectOpenFiles.HandleRecord[] handles, string path)
+        {
+            foreach (var handle in handles)
+            {
+                try
+                {
+                    handle.Close();
+                }
+                catch (Exception ex)
+                {
+                    Log.Verbose($"Error while closing handle {ex}");
+                    return false;
+                }
+            }
+            return Wait(handles);
+        }
+
+        private static bool StopService(RestartManager.RM_PROCESS_INFO locker, DetectOpenFiles.HandleRecord[] handles)
         {
             if (!string.IsNullOrEmpty(locker.strServiceShortName))
             {
@@ -82,8 +108,7 @@ namespace WarmDelete
 
                 try
                 {
-                    service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(SecondsToWaitForServiceStop));
-                    return true;
+                    return Wait(handles);
                 }
                 catch(Exception ex)
                 {
@@ -93,6 +118,23 @@ namespace WarmDelete
             }
 
             return false;
+        }
+
+        private static bool Wait(DetectOpenFiles.HandleRecord[] handles)
+        {
+            var start = DateTime.Now;
+            var timeout = TimeSpan.FromSeconds(SecondsToWaitForHandleRelease);
+
+            while (handles.Any(h => h.IsOpen))
+            {
+                if((DateTime.Now-start) > timeout)
+                {
+                    return false;
+                }
+                Thread.Sleep(100);
+            }
+
+            return true;
         }
 
         private static bool Kill(Process process)
@@ -108,10 +150,10 @@ namespace WarmDelete
         }
 
 
-        private static bool SendCloseMessage(Process process)
+        private static bool SendCloseMessage(Process process, DetectOpenFiles.HandleRecord[] handles)
         {
             Messenger.SendCloseMessage(process);
-            return process.WaitForExit(5000);
+            return Wait(handles);
         }
 
     }

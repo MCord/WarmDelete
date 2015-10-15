@@ -41,6 +41,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -57,6 +58,7 @@
     <Compile Include="RestartManager.cs" />
     <Compile Include="Unlocker.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="VMController.cs" />
     <Compile Include="WarmRemover.cs" />
   </ItemGroup>
   <ItemGroup>
